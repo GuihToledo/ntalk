@@ -25,6 +25,20 @@ app.use(express.static(__dirname + '/public'));
 app.use(error.notFound);
 app.use(error.serverError);
 
+io.set('authorization', function(data, accept) {
+  cookie(data, {}, function(err) {
+    var sessionID = data.signedCookies[KEY];
+    store.get(sessionID, function(err, session) {
+      if (err || !session) {
+        accept(null, false);
+      } else {
+        data.session = session;
+        accept(null, true);
+      }
+    });
+  });
+});
+
   load('models')
     .then('controllers')
     .then('routes')
