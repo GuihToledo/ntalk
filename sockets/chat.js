@@ -5,6 +5,19 @@ module.exports = function(io) {
 
 	sockets.on('connection', function (client) {
 		var session = client.handshake.session
+			, usuario = session.usuario;
+		client.set('email', usuario.email);
+
+		var onlines = sockets.clients();
+		onlines.forEach(function(online) {
+			var online = sockets.sockets[online.id];
+				online.get('email', function(err, email) {
+				client.emit('notify-onlines', email);
+				client.broadcast.emit('notify-onlines', email);
+			});
+		});
+
+		var session = client.handshake.session
 		, usuario = session.usuario;
 		client.on('send-server', function (msg) {
 			var msg = "<b>"+ usuario.nome +":</b> "+ msg +"<br>";
@@ -12,12 +25,10 @@ module.exports = function(io) {
 				var data = {email: usuario.email, sala: sala};
 				client.broadcast.emit('new-message', data);
 				sockets.in(sala).emit('send-client', msg);
-				console.log("SALAAAA ENTRADA ->>" + sala);
 			});
 		});
 
 		client.on('join', function(sala) {
-			console.log("Entrou Join");
 			if(sala) {
 				sala = sala.replace('?','');
 			} else {
@@ -32,7 +43,7 @@ module.exports = function(io) {
 
 		client.on('disconnect', function () {
 			client.get('sala', function(erro, sala) {
-				console.log("SALAAAA ->>" + sala);
+				console.log("DISCONNECT ->>" + sala);
 				client.leave(sala);
 			});
 		});
