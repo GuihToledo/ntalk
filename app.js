@@ -3,15 +3,16 @@ var express = require('express')
 , load = require('express-load')
 , error = require('./middleware/error')
 , server = require('http').createServer(app)
-, io = require('socket.io').listen(server);
+, io = require('socket.io').listen(server)
+, mongoose = require('mongoose');
 
+global.db = mongoose.connect('mongodb://localhost/ntalk');
 
 const KEY = 'ntalk.sid', SECRET = 'ntalk';
 var cookie = express.cookieParser(SECRET)
 , store = new express.session.MemoryStore()
 , sessOpts = {secret: SECRET, key: KEY, store: store}
 , session = express.session(sessOpts);
-
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');

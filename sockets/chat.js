@@ -4,8 +4,8 @@ module.exports = function(io) {
 		sockets = io.sockets;
 
 	sockets.on('connection', function (client) {
-		var session = client.handshake.session
-			, usuario = session.usuario;
+		var session = client.handshake.session;
+		var usuario = session.usuario;
 		client.set('email', usuario.email);
 
 		var onlines = sockets.clients();
@@ -37,13 +37,14 @@ module.exports = function(io) {
 				sala = md5.update(timestamp).digest('hex');
 			}
 			client.set('sala', sala);
-			console.log("SALA JOIN->>" + sala);
 			client.join(sala);
 		});
 
-		client.on('disconnect', function () {
+		client.on('disconnect', function() {
 			client.get('sala', function(erro, sala) {
-				console.log("DISCONNECT ->>" + sala);
+				var msg = "<b>"+ usuario.nome +":</b> saiu.<br>";
+				client.broadcast.emit('notify-offline', usuario.email);
+				sockets.in(sala).emit('send-client', msg);
 				client.leave(sala);
 			});
 		});
